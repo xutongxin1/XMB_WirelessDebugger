@@ -57,7 +57,9 @@ build/
 
 .vscode/
 
-.idea/
+.idea/*
+!.idea/runConfigurations
+
 
 idf-driver-esp32-usb-jtag-2021-07-15.zip
 

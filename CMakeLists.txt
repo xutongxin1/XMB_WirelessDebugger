@@ -4,5 +4,5 @@ cmake_minimum_required(VERSION 3.16)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(hello_world)
-add_compile_options (-Wimplicit-fallthrough=0)
+add_compile_options (-Wimplicit-fallthrough=0 -DCMAKE_CXX_COMPILER_LAUNCHER=ccache)
 set(CMAKE_BUILD_PARALLEL_LEVEL 12)
