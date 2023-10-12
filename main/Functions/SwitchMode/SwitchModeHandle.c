@@ -62,7 +62,7 @@ void UartTask(int ksock) {
 
         if (uart_flag == 1)
         {//串口已被占用，重新配置
-            UartSetup(&c1);
+//            UartSetup(&c1);
             TcpTaskAllDelete(TCP_TASK_HANDLE);
              static TcpParam tp0 =
                 {

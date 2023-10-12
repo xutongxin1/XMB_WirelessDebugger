@@ -46,7 +46,7 @@ extern bool c2UartConfigFlag;
 
 void TCPInstructionTask(void) {
 
-    char addr_str[128];
+//    char addr_str[128];
     int addr_family = AF_INET;
     int ip_protocol;
 
