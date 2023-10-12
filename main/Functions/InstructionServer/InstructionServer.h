@@ -37,7 +37,7 @@
 #define EL_DATA_PHASE 3
 
 void TCPInstructionTask();
-void HeartBeat(unsigned int len, char *rx_buffer);
+void HeartBeat(char *rx_buffer);
 void CommandJsonAnalysis(unsigned int len, void *rx_buffer, int ksock);
 void ChangeWorkMode(int mode);
 

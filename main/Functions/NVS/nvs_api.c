@@ -61,6 +61,7 @@ void NVSFlashWrite(char mode_number) {
 }
 
 //读取flash内容
+//读取到的逻辑条件为：上次是为了切换模式而重启，因此在重启前写入flash用于现在读取进入对应模式
 int NVSFlashRead() {
 
 

@@ -27,18 +27,17 @@ void app_main(void) {
     //TODO：配网逻辑
 
     //初始化wifi
-
     wifi_init();
 
-    //NVS   读取NVS
+    //读取NVS
     int command_mode = NVSFlashRead();//对应泛型
-    if (command_mode != -1) {
+    if (command_mode != -1) {//上次重启是为了配置模式
         working_mode = command_mode;
-        ChangeWorkMode(command_mode);
+        ChangeWorkMode(command_mode);//配置工作模式
     }
 
     // Mode
     // TcpCommandPipeTask 指令通道
-    xTaskCreatePinnedToCore(TCPInstructionTask, "TCPInstructionTask", 4096, NULL, 14, NULL, 1);
+    xTaskCreatePinnedToCore(TCPInstructionTask, "TCPInstructionTask", 8192, NULL, 14, NULL, 1);
 
 }
