@@ -15,8 +15,7 @@
 #include "lwip/sockets.h"
 #include <errno.h>
 #include "cJSON.h"
-
-
+#include "WSLED/WSLED.h"
 
 //static int receive_com_flag = 0;                // 是否收到COM心跳包
 const char kHeartRet[5] = "OK!\r\n"; // 心跳包发送
@@ -87,16 +86,16 @@ void TCPInstructionTask(void) {
     while (1) {//等待客户端连接
 
         ESP_LOGI(TAG, "Instruction TCP Socket listening");
-
+        WSLEDSet(0,50,0,true);//表示设备连接上
         struct sockaddr_storage source_addr; // Large enough for both IPv4 or IPv6
         socklen_t addr_len = sizeof(source_addr);
 
-        instrucion_kSock = accept(listen_sock, (struct sockaddr *) &source_addr, &addr_len);//接收来自客户端的连接要求，返回新套接字的句柄
+        instrucion_kSock = accept(listen_sock, (struct sockaddr *) &source_addr, &addr_len);//接收来自客户端的连接要求，返回新套接字的句柄，该函数为阻塞函数
         if (instrucion_kSock < 0) {
             ESP_LOGE(TAG, " Unable to accept connection: errno %d", errno);
-            break;
+            continue;
         }
-        // printf("1");
+        WSLEDSet(0,50,0,false);//表示设备连接上
         setsockopt(instrucion_kSock, SOL_SOCKET, SO_KEEPALIVE, &keepAlive, sizeof(int));
         setsockopt(instrucion_kSock, IPPROTO_TCP, TCP_KEEPIDLE, &keepIdle, sizeof(int));
         setsockopt(instrucion_kSock, IPPROTO_TCP, TCP_KEEPINTVL, &keepInterval, sizeof(int));
@@ -132,9 +131,12 @@ void TCPInstructionTask(void) {
             }
                 // Data received
             else {
-
+                //使用 /* FALLTHRU */ 关键字避免报错
                 switch (kState1) {
-                    case ACCEPTING:kState1 = ATTACHING;
+
+                    case ACCEPTING:
+                        kState1 = ATTACHING;
+                        /* FALLTHRU */
                     case ATTACHING:
                         // printf("RX: %s\n", tcp_rx_buffer);
                         HeartBeat(tcp_rx_buffer); // 发送心跳包，当COM心跳成功发送，则置Flag为1
@@ -300,7 +302,7 @@ void CommandJsonAnalysis(unsigned int len, void *rx_buffer, int ksock) {
 }
 
 void ChangeWorkMode(int mode) {
-
+    WSLEDSet(0,0,50,true);//表示收到模式配置
     switch (mode) {
 //        case DAP:DAPHandle();
 //            break;
