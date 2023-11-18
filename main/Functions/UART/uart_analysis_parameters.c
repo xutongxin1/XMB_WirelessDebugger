@@ -10,7 +10,6 @@ bool c2UartConfigFlag = false;
 static const char *TAG = "UARTConfiguration";
 //串口1接收到的字符解析并进行配置
 int Uart1ParameterAnalysis(void *attach_rx_buffer, UartInitT* uart_config) {
-
     cJSON *pu1 = cJSON_GetObjectItem(attach_rx_buffer, "u1"); // 解析c1字段内容
          //是否指令为空
          if (pu1 != NULL)

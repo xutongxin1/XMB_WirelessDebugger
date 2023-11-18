@@ -34,8 +34,7 @@ enum TCPMode {
 
 typedef struct 
 {
-    QueueHandle_t* tx_buff_queue_;
-    QueueHandle_t* rx_buff_queue_;
+    UartTcpQueueT UartTcpQueue;
     enum TCPMode mode;
     enum Port port;
 }TcpParam;
@@ -61,11 +60,11 @@ typedef struct
     enum TCPMode mode;
 } TcpTaskHandleT;
 
-void TcpSendServer(TcpParam *parameter);
+//void TcpSendServer(TcpParam *parameter);
 void TcpRevServer(TcpParam *parameter);
 void TcpServerRevAndSend(TcpParam *parameter);
 uint8_t CreateTcpServer(uint16_t port, struct netconn **conn);
 uint8_t TcpTaskAllDelete(TcpTaskHandleT* tcp_task_handle_delete);
 TcpTaskHandleT* TcpTaskCreate(TcpParam *parameter);
-void TcpServerSubtask(SubTcpParam *parameter);
+void TcpSendServer(SubTcpParam *parameter);
 #endif
