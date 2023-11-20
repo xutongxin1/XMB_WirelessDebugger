@@ -351,7 +351,7 @@ void UartSend(UartInitT *uart_config) {
         events event;
         // ESP_LOGE(UART_TAG, "&event: %p", &event);
         while (xQueueReceive(*(uart_config->UartTcpQueue.tcp_to_uart_queue_), &event, pdMS_TO_TICKS(100)) != pdTRUE) {
-            ESP_LOGI(UART_TAG, "WAITING ...");
+            //ESP_LOGI(UART_TAG, "WAITING ...");
         }
         if (event.buff_len_ != 0) {
             ESP_LOGI(UART_TAG, "SENDING ...");

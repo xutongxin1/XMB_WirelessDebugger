@@ -337,6 +337,7 @@ void TcpServerRevAndSend(TcpParam *parameter) {
     while (1) {
         int re_err;
         err = netconn_accept(conn_All, &newconn_All);
+        //ESP_LOGI(TCP_TAG,"tcp received\n");
         /* Process the new connection. */
 
         if (err == ERR_OK) {
@@ -373,7 +374,7 @@ void TcpServerRevAndSend(TcpParam *parameter) {
 //                            netbuf_delete(buf);
 //                            break;
 //                        }
-                        if (xQueueSend(*(parameter->UartTcpQueue.uart_to_tcp_queue_), &tx_event_, pdMS_TO_TICKS(10)) == pdPASS) {
+                        if (xQueueSend(*(parameter->UartTcpQueue.tcp_to_uart_queue_), &tx_event_, pdMS_TO_TICKS(10)) == pdPASS) {
 
                         }
                         else

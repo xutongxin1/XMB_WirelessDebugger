@@ -81,7 +81,7 @@ void UartTask(int ksock) {
         else if(uart1_flag == 0)
         {
             CreateUartTask(&c1);
-            static TcpParam tp0 =
+            static TcpParam tp1 =
                 {
                     .UartTcpQueue.uart_to_tcp_queue_ = &uart1_to_tcp1_queue_,
                     .UartTcpQueue.tcp_to_uart_queue_ = &tcp1_to_uart1_queue_,
@@ -89,42 +89,43 @@ void UartTask(int ksock) {
                     .port = CH2,
                 };
 
-            tcphand1 = TcpTaskCreate(&tp0);
+            tcphand1 = TcpTaskCreate(&tp1);
         }
         c1UartConfigFlag = false;//0
     }
 
-//    if (c2UartConfigFlag == true ) {
-//        if (uart2_flag == 1){
-//            TcpTaskAllDelete(TCP_TASK_HANDLE);
-//            static TcpParam tp2 =
-//                    {
-//                            .uart_to_tcp_queue_ = &uart2_to_tcp2_queue_,
-//                            .tcp_to_uart_queue_ = &tcp2_to_uart2_queue_,
-//                            .mode = TCP_ALL,
-//                            .port = CH3,
-//                    };
-//            tcphand2 = TcpTaskCreate(&tp2);
-//        }
-//        else{
-//            CreateUartTask(&c2);
-//            static TcpParam tp2 =
-//                    {
-//                            .uart_to_tcp_queue_ = &uart2_to_tcp2_queue_,
-//                            .tcp_to_uart_queue_ = &tcp2_to_uart2_queue_,
-//                            .mode = TCP_ALL,
-//                            .port = CH3,
-//                    };
-//            tcphand2 = TcpTaskCreate(&tp2);
-//        }
-//        c2UartConfigFlag = false;
-//    }
+    if (c2UartConfigFlag == true ) {
+        if (uart2_flag == 1){
+            TcpTaskAllDelete(TCP_TASK_HANDLE);
+            static TcpParam tp2 =
+                    {
+                            .UartTcpQueue.uart_to_tcp_queue_ = &uart2_to_tcp2_queue_,
+                            .UartTcpQueue.tcp_to_uart_queue_ = &tcp2_to_uart2_queue_,
+                            .mode = TCP_ALL,
+                            .port = CH3,
+                    };
+            tcphand2 = TcpTaskCreate(&tp2);
+        }
+        else{
+            CreateUartTask(&c2);
+            static TcpParam tp2 =
+                    {
+                            .UartTcpQueue.uart_to_tcp_queue_ = &uart2_to_tcp2_queue_,
+                            .UartTcpQueue.tcp_to_uart_queue_ = &tcp2_to_uart2_queue_,
+                            .mode = TCP_ALL,
+                            .port = CH3,
+                    };
+            tcphand2 = TcpTaskCreate(&tp2);
+        }
+        c2UartConfigFlag = false;
+    }
+    //未知含义代码
 //    else if (c2UartConfigFlag == true && uart1_flag == 1) {
 //        CreateUartTask(&c2);
 //           static TcpParam tp2 =
 //            {
-//                .uart_to_tcp_queue_ = &uart2_to_tcp2_queue_,
-//                .tcp_to_uart_queue_ = &tcp2_to_uart2_queue_,
+//                .UartTcpQueue.uart_to_tcp_queue_ = &uart2_to_tcp2_queue_,
+//                .UartTcpQueue.tcp_to_uart_queue_ = &tcp2_to_uart2_queue_,
 //                .mode = TCP_ALL,
 //                .port = CH3,
 //            };
