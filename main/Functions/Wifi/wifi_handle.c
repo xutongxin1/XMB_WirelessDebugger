@@ -14,8 +14,8 @@
 #include "wifi_info.h"
 
 
-static EventGroupHandle_t wifi_event_group;
-static int ssid_index = 0;
+//static EventGroupHandle_t wifi_event_group;
+//static int ssid_index = 0;
 static const char *TAG = "wifi station";
 static int s_retry_num = 0;
 

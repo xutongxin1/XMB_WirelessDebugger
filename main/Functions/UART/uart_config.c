@@ -266,9 +266,9 @@ UartErrT CreateUartTask(UartInitT *uart_config) {
         return err;
     }
     uint8_t id = GetUartManageId(uart_config->uart_num);
-    const char kAllname[] = "ALL";
-    const char kRxname[] = "Rec";
-    const char kTxname[] = "Tran";
+//    const char kAllname[] = "ALL";
+//    const char kRxname[] = "Rec";
+//    const char kTxname[] = "Tran";
     char pc_name[18];
     ESP_LOGI(UART_TAG, "the mode is %d\n", uart_config->mode_);
     switch (uart_config->mode_) {
