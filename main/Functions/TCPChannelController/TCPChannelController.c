@@ -70,13 +70,13 @@ uint8_t CreateTcpServer(uint16_t port, struct netconn **conn) {
     while (*conn == NULL) {
         *conn = netconn_new(NETCONN_TCP);
     }
-    printf("creat : %p\r\n", *conn);
+    ESP_LOGI(TCP_TAG,"creat : %p", *conn);
     // netconn_set_nonblocking(conn, NETCONN_FLAG_NON_BLOCKING);
     //netconn_bind(*conn, &ip_info.ip, Param->port);
     /* Bind connection to well known port number 7. */
     netconn_bind(*conn, IP_ADDR_ANY, port);
     netconn_listen(*conn); /* Grab new connection. */
-    printf("PORT: %d\nLISTENING.....\n", port);
+    ESP_LOGI(TCP_TAG,"PORT: %d\nLISTENING.....", port);
     return ESP_OK;
 }
 
@@ -215,11 +215,12 @@ void TcpSendServer(SubTcpParam *parameter) {
 
     TcpParam *tcp_param = parameter->tcp_param_;
     QueueHandle_t uart_to_tcp_queue_ = *tcp_param->UartTcpQueue.uart_to_tcp_queue_;
-    printf("tcp_rx_queue rx: %p\n", tcp_param->UartTcpQueue.uart_to_tcp_queue_);
+    //printf("tcp_rx_queue rx: %p\n", tcp_param->UartTcpQueue.uart_to_tcp_queue_);
     //struct netconn *conn = Param->conn;
     struct netconn *newconn = *(parameter->newconn_);
+    TCP_TASK_HANDLE[parameter->son_task_current_].son_task_exists_ = true;
     while (TCP_TASK_HANDLE[parameter->son_task_current_].son_task_exists_) {
-        ESP_DRAM_LOGI(TCP_TAG,"SENDING...\n");
+        ESP_DRAM_LOGI(TCP_TAG,"tCP SENDING mode is working...\n");
 
         events event;
         int ret = xQueueReceive(uart_to_tcp_queue_, &event, portMAX_DELAY);
@@ -227,17 +228,21 @@ void TcpSendServer(SubTcpParam *parameter) {
             netconn_write(newconn, event.buff_, event.buff_len_, NETCONN_NOCOPY);
             ESP_LOGI(TCP_TAG,"sending successfully!\n");
         }
+        else{
+            ESP_LOGE(TCP_TAG,"uart to tcp queue sending error!!\n");
+        }
     }
+    ESP_LOGE(TCP_TAG,"TCP task is deleted!!!\n");
     vTaskDelete(NULL);
 }
 
-TcpTaskHandleT *TcpTaskCreate(TcpParam *parameter) {
-    printf("parameter uart_to_tcp_queue_:%p\n", parameter->UartTcpQueue.uart_to_tcp_queue_);
-    printf("parameter tcp_to_uart_queue_:%p\n", parameter->UartTcpQueue.tcp_to_uart_queue_);
-    printf("Param:%p\n", parameter);
+TcpTaskHandleT *TcpTaskCreate(TcpParam *parameter,int priority) {
+    //printf("parameter uart_to_tcp_queue_:%p\n", parameter->UartTcpQueue.uart_to_tcp_queue_);
+    //printf("parameter tcp_to_uart_queue_:%p\n", parameter->UartTcpQueue.tcp_to_uart_queue_);
+    //printf("Param:%p\n", parameter);
     const char kAllname[] = "ALL";
-    const char kRxname[] = "Rec";
-    const char kTxname[] = "Tran";
+//    const char kRxname[] = "Rec";
+//    const char kTxname[] = "Tran";
     char pc_name[18];
     printf("\nParam->mode:%d\n", parameter->mode);
     switch (parameter->mode) {
@@ -270,12 +275,12 @@ TcpTaskHandleT *TcpTaskCreate(TcpParam *parameter) {
 //            kTcpHandleFatherTaskCurrent++;
 //            break;
         case TCP_ALL:sprintf(pc_name, "Tcp%s%d", kAllname, kTcpHandleFatherTaskCurrent);
-            printf("%s", pc_name);
+            //printf("%s", pc_name);
             xTaskCreatePinnedToCore((TaskFunction_t) TcpServerRevAndSend,
                                     (const char *const) pc_name,
                                     5120,
                                     parameter,
-                                    14,
+                                    priority,
                                     TCP_TASK_HANDLE[kTcpHandleFatherTaskCurrent].father_task_handle_,
                                     0);
             if (TCP_TASK_HANDLE[kTcpHandleFatherTaskCurrent].father_task_handle_ != NULL) {
@@ -319,12 +324,14 @@ uint8_t TcpTaskAllDelete(TcpTaskHandleT *tcp_task_handle_delete) {
 ///
 /// \param parameter
 void TcpServerRevAndSend(TcpParam *parameter) {
-
-    err_t err = 1;
-    char tmp[16];
-    printf("tcp_tx_queue tx: %p\n", parameter->UartTcpQueue.uart_to_tcp_queue_);
+//    static int time;
+    static err_t err = 1;
+    static char tmp[16];
+    ESP_LOGI(TCP_TAG,"entering receive and send mode");
+    ESP_LOGI(TCP_TAG,"MEMP_NUM_NETBUF:%d",MEMP_NUM_NETBUF);
+    //printf("tcp_tx_queue tx: %p\n", parameter->UartTcpQueue.uart_to_tcp_queue_);
     /* Create a new connection identifier. */
-    CreateTcpServer(parameter->port, &conn_All);
+    CreateTcpServer(parameter->port, &conn_All);//创建TCP Server netCONN协议
 
     SubParam.tcp_param_ = parameter;
     SubParam.conn = &conn_All;
@@ -334,10 +341,15 @@ void TcpServerRevAndSend(TcpParam *parameter) {
     /* Tell connection to go into listening mode. */
     //netconn_listen(conn);
     // printf("PORT: %d\nLISTENING.....\n",  Param->port);
+    ESP_LOGI(TCP_TAG,"begin to accept:%p",&conn_All);
+    vTaskDelete(NULL);
+
     while (1) {
         int re_err;
+        ESP_LOGI(TCP_TAG,"begin to accept:%d",parameter->port);
         err = netconn_accept(conn_All, &newconn_All);
-        //ESP_LOGI(TCP_TAG,"tcp received\n");
+        ESP_LOGI(TCP_TAG,"accepted from %d",parameter->port);
+
         /* Process the new connection. */
 
         if (err == ERR_OK) {
@@ -345,8 +357,8 @@ void TcpServerRevAndSend(TcpParam *parameter) {
             if (!TCP_TASK_HANDLE[kTcpHandleFatherTaskCurrent].son_task_exists_) {
                 /*Create Receive Subtask*/
                 SubParam.newconn_ = &newconn_All;
-                sprintf(tmp, "tcp_subtask_%d", parameter->port);
-                printf("\n%s\n", tmp);
+                //sprintf(tmp, "tcp_subtask_%d", parameter->port);
+                //printf("\n%s\n", tmp);
 
                 if (xTaskCreatePinnedToCore((TaskFunction_t) TcpSendServer,
                                             (const char *const) tmp,
@@ -357,6 +369,9 @@ void TcpServerRevAndSend(TcpParam *parameter) {
                     TCP_TASK_HANDLE[kTcpHandleFatherTaskCurrent].son_task_exists_ = true;
                     TCP_TASK_HANDLE[kTcpHandleFatherTaskCurrent].son_taskcount_++;
                     //strcpy(TCP_TASK_HANDLE[kTcpHandleFatherTaskCurrent].son_taskname_, tmp);
+                }
+                else{
+                    ESP_LOGE(TCP_TAG,"tcp sending task is not built!\n");
                 }
             }
             /*Create send buffer*/
@@ -397,6 +412,7 @@ void TcpServerRevAndSend(TcpParam *parameter) {
 //            netconn_listen(conn);
         }
     }
+    vTaskDelete(NULL);
 }
 
 static err_t GetConnectState(struct netconn *conn) {

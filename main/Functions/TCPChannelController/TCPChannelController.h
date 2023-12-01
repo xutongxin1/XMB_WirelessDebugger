@@ -61,10 +61,10 @@ typedef struct
 } TcpTaskHandleT;
 
 //void TcpSendServer(TcpParam *parameter);
-void TcpRevServer(TcpParam *parameter);
+//void TcpRevServer(TcpParam *parameter);
 void TcpServerRevAndSend(TcpParam *parameter);
 uint8_t CreateTcpServer(uint16_t port, struct netconn **conn);
 uint8_t TcpTaskAllDelete(TcpTaskHandleT* tcp_task_handle_delete);
-TcpTaskHandleT* TcpTaskCreate(TcpParam *parameter);
+TcpTaskHandleT* TcpTaskCreate(TcpParam *parameter,int priority);
 void TcpSendServer(SubTcpParam *parameter);
 #endif

@@ -23,6 +23,7 @@ static TaskHandle_t uart_task_handle[4];
 static UartManageT uart_manage;
 uint8_t uart1_flag = 0;
 uint8_t uart2_flag = 0;
+//unsigned portBASE_TYPE uxHighWaterMark_tcp1;
 // void UartRev(void *uartParameter)
 // {
 //     uart_configrantion config = *(uart_configrantion *)uartParameter;
@@ -272,7 +273,7 @@ UartErrT CreateUartTask(UartInitT *uart_config) {
     ESP_LOGI(UART_TAG, "the mode is %d\n", uart_config->mode_);
     switch (uart_config->mode_) {
         case UART_IO_MODE_SEND:
-            sprintf(pc_name, "Uart%s%d", kTxname, uart_manage.task_num_);
+            //sprintf(pc_name, "Uart%s%d\n", kTxname, uart_manage.task_num_);
             xTaskCreatePinnedToCore((TaskFunction_t) UartSend,
                                     (const char *const) pc_name,
                                     5120,
@@ -285,7 +286,7 @@ UartErrT CreateUartTask(UartInitT *uart_config) {
             uart_manage.task_handle_[id].task_num_++;
             break;
         case UART_IO_MODE_RECEIVE:
-            sprintf(pc_name, "Uart%s%d", kRxname, uart_manage.task_num_);
+            //sprintf(pc_name, "Uart%s%d", kRxname, uart_manage.task_num_);
             xTaskCreatePinnedToCore((TaskFunction_t) UartRev,
                                     (const char *const) pc_name,
                                     5120,
@@ -298,7 +299,7 @@ UartErrT CreateUartTask(UartInitT *uart_config) {
             uart_manage.task_handle_[id].task_num_++;
             break;
         case UART_IO_MODE_ALL:
-            sprintf(pc_name, "Uart%s%s%d", kAllname, kTxname, uart_manage.task_num_);
+            //sprintf(pc_name, "Uart%s%s%d", kAllname, kTxname, uart_manage.task_num_);
             xTaskCreatePinnedToCore((TaskFunction_t) UartSend,
                                     (const char *const) pc_name,
                                     5120,
@@ -309,7 +310,7 @@ UartErrT CreateUartTask(UartInitT *uart_config) {
             uart_manage.task_num_++;
             uart_manage.task_handle_[id].handle[uart_manage.task_handle_[id].task_num_] = &uart_task_handle[uart_manage.task_num_];
             uart_manage.task_handle_[id].task_num_++;
-            sprintf(pc_name, "Uart%s%s%d", kAllname, kRxname, uart_manage.task_num_);
+            //sprintf(pc_name, "Uart%s%s%d", kAllname, kRxname, uart_manage.task_num_);
             xTaskCreate((TaskFunction_t) UartRev,
                         (const char *const) pc_name,
                         5120,
@@ -319,6 +320,7 @@ UartErrT CreateUartTask(UartInitT *uart_config) {
             uart_manage.task_num_++;
             uart_manage.task_handle_[id].handle[uart_manage.task_handle_[id].task_num_] = &uart_task_handle[uart_manage.task_num_];
             uart_manage.task_handle_[id].task_num_++;
+
             break;
         case UART_IO_MODE_FORWARD:
             //todo:收发功能

@@ -30,7 +30,7 @@ int Uart1ParameterAnalysis(void *attach_rx_buffer, UartInitT* uart_config) {
             uart_config->uart_num = UART_NUM_1;
              ESP_LOGI(TAG, "UART1 Config Begin");
              uart_config->mode_ = item->valueint;
-            printf("mode = %d\n", uart_config->mode_);
+            //printf("mode = %d\n", uart_config->mode_);
 
 
 
