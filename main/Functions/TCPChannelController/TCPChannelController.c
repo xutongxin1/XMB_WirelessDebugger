@@ -40,17 +40,18 @@ TcpInfoTaskHandleT tcp_info_task_handle[4];//1921,1922,1923,1924
  * @param k_server A netconn descriptor
  * @return ERR_OK if bound, any other err_t on failure
  */
-esp_err_t CreateTcpServer(uint16_t port, struct netconn *k_server) {
-    while (k_server == NULL) {
-        k_server = netconn_new(NETCONN_TCP);
+esp_err_t CreateTcpServer(TcpInfoTaskHandleT *parameter) {
+
+    while (parameter->k_server_ == NULL) {
+        parameter->k_server_  = netconn_new(NETCONN_TCP);
     }
-    ESP_LOGI(TCP_TAG, "creat : %p", k_server);
+//    ESP_LOGI(TCP_TAG, "creat : %p", parameter->k_server_ );
     // netconn_set_nonblocking(conn, NETCONN_FLAG_NON_BLOCKING);
     //netconn_bind(*conn, &ip_info.ip, Param->port);
     /* Bind connection to well known port number 7. */
-    netconn_bind(k_server, IP_ADDR_ANY, port);
-    netconn_listen(k_server); /* Grab new connection. */
-    ESP_LOGI(TCP_TAG,"PORT: %d LISTENING.....", port);
+    ESP_ERROR_CHECK(netconn_bind(parameter->k_server_ , IP_ADDR_ANY, parameter->port_ ));
+    ESP_ERROR_CHECK(netconn_listen(parameter->k_server_ )); /* Grab new connection. */
+    ESP_LOGI(TCP_TAG,"PORT: %d LISTENING.....", parameter->port_);
     return ESP_OK;
 }
 
@@ -138,13 +139,13 @@ esp_err_t TcpTaskAllDelete(TcpInfoTaskHandleT *tcp_task_handle_delete) {
 
 /// TCP接受连接与接收的任务
 /// \param parameter 传参
-_Noreturn void TcpServerAcceptWithRec(TcpInfoTaskHandleT *parameter) {
+void TcpServerAcceptWithRec(TcpInfoTaskHandleT *parameter) {
     err_t err = ESP_OK;
 
     ESP_LOGI(TCP_TAG, "entering TcpServerAcceptWithRec with port %d", parameter->port_);
-
-    ESP_ERROR_CHECK(CreateTcpServer(parameter->port_, parameter->k_server_));//创建TCP Server netCONN协议
-
+//    ESP_LOGI(TCP_TAG, "entering TcpServerAcceptWithRec with port %p", &(parameter->k_server_));
+    ESP_ERROR_CHECK(CreateTcpServer(parameter));//创建TCP Server netCONN协议
+//    ESP_LOGI(TCP_TAG, "creat : %p", parameter->k_server_);
 
     while (1) {
         int re_err;

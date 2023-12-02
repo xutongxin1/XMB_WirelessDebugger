@@ -54,7 +54,7 @@ extern TcpInfoTaskHandleT tcp_info_task_handle[4];//1921,1922,1923,1924
 //void TcpRevServer(TcpParam *parameter);
 /// TCP接受连接与接收的任务
 /// \param parameter 传参
-_Noreturn void TcpServerAcceptWithRec(TcpInfoTaskHandleT *parameter);
+void TcpServerAcceptWithRec(TcpInfoTaskHandleT *parameter);
 
 /// TCP发送的任务
 /// \param parameter 传参
@@ -64,7 +64,7 @@ _Noreturn void TcpServerSend(TcpInfoTaskHandleT *parameter);
 /// \param port 端口
 /// \param k_server NetIF服务端句柄
 /// \return 返回创建是否成功
-esp_err_t CreateTcpServer(uint16_t port, struct netconn *k_server);
+esp_err_t CreateTcpServer(TcpInfoTaskHandleT *parameter);
 
 /// 删除TCP NetIF 所有句柄和任务
 /// \param tcp_task_handle_delete
