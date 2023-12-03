@@ -45,10 +45,21 @@ typedef struct
     UartTcpQueueT uart_tcp_queue_;
 
     //NetIF句柄
-    struct netconn *k_server_;
-    struct netconn *k_client_;
+//    struct netconn *k_server_;
+//    struct netconn *k_client_;
+    int k_server_;
+    int k_client_;
 
 } TcpInfoTaskHandleT;
+
+typedef struct
+{
+    //enum CommandMode mode;
+    char buff_arr_[EVENT_BUFF_SIZE];
+//    char* buff_;
+    uint16_t buff_len_;
+}TcpInfoEvent;
+
 extern TcpInfoTaskHandleT tcp_info_task_handle[4];//1921,1922,1923,1924
 //void TcpSendServer(TcpParam *parameter);
 //void TcpRevServer(TcpParam *parameter);
@@ -77,4 +88,5 @@ esp_err_t TcpTaskAllDelete(TcpInfoTaskHandleT *tcp_task_handle_delete);
 /// \return 创建是否成功
 esp_err_t TcpTaskCreate(TcpInfoTaskHandleT *parameter, int priority);
 
+esp_err_t TCPBSDAccept(TcpInfoTaskHandleT *parameter);
 #endif

@@ -96,7 +96,7 @@ void TCPInstructionTask(void) {
     int addr_family = AF_INET;
     int ip_protocol;
 
-    static int on = 1;
+    int on = 1;
 
     struct sockaddr_storage dest_addr;
     struct sockaddr_in *dest_addr_ip4 = (struct sockaddr_in *) &dest_addr;

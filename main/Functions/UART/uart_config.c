@@ -31,7 +31,7 @@ uint8_t uart2_flag = 0;
 //     UartSetup(&config);
 //     char buffer[UART_BUF_SIZE];
 //     int uart_buf_len = 0;
-//     events event;
+//     TcpInfoEvent event;
 //     QueueHandle_t uart_queue = *config.buff_queue;
 //     while (1)
 //     {
@@ -71,7 +71,7 @@ uint8_t uart2_flag = 0;
 //     QueueHandle_t uart_queue = *config.buff_queue;
 //     while (1)
 //     {
-//         events event;
+//         TcpInfoEvent event;
 //         // ESP_LOGE(UART_TAG, "&event: %p", &event);
 //         while (xQueueReceive(uart_queue, &event, pdMS_TO_TICKS(100)) != pdTRUE)
 //             ;
@@ -216,7 +216,7 @@ UartErrT UartSetup(UartInitT *config) {
             // ESP_LOGE(UART_TAG, "uart NUM existed\r\n");
             // return UART_NUM_EXISTED;
             uart2_flag = 1;
-        }//todo:增加串口2标志位
+        }
 
         if (uart2_flag == 0)//串口2空闲，直接配置
         {
@@ -270,41 +270,42 @@ UartErrT CreateUartTask(UartInitT *uart_config) {
 //    const char kRxname[] = "Rec";
 //    const char kTxname[] = "Tran";
     char pc_name[18];
-    ESP_LOGI(UART_TAG, "the mode is %d\n", uart_config->mode_);
+//    ESP_LOGI(UART_TAG, "uart mode is %d", uart_config->mode_);
     switch (uart_config->mode_) {
-        case UART_IO_MODE_SEND:
-            //sprintf(pc_name, "Uart%s%d\n", kTxname, uart_manage.task_num_);
-            xTaskCreatePinnedToCore((TaskFunction_t) UartSend,
-                                    (const char *const) pc_name,
-                                    5120,
-                                    uart_config,
-                                    14,
-                                    &uart_task_handle[uart_manage.task_num_],
-                                    1);
-            uart_manage.task_num_++;
-            uart_manage.task_handle_[id].handle[uart_manage.task_handle_[id].task_num_] = &uart_task_handle[uart_manage.task_num_];
-            uart_manage.task_handle_[id].task_num_++;
-            break;
-        case UART_IO_MODE_RECEIVE:
-            //sprintf(pc_name, "Uart%s%d", kRxname, uart_manage.task_num_);
-            xTaskCreatePinnedToCore((TaskFunction_t) UartRev,
-                                    (const char *const) pc_name,
-                                    5120,
-                                    uart_config,
-                                    14,
-                                    &uart_task_handle[uart_manage.task_num_],
-                                    1);
-            uart_manage.task_num_++;
-            uart_manage.task_handle_[id].handle[uart_manage.task_handle_[id].task_num_] = &uart_task_handle[uart_manage.task_handle_[id].task_num_];
-            uart_manage.task_handle_[id].task_num_++;
-            break;
+//        case UART_IO_MODE_SEND:
+
+//            //sprintf(pc_name, "Uart%s%d\n", kTxname, uart_manage.task_num_);
+//            xTaskCreatePinnedToCore((TaskFunction_t) UartSend,
+//                                    (const char *const) pc_name,
+//                                    5120,
+//                                    uart_config,
+//                                    10,
+//                                    &uart_task_handle[uart_manage.task_num_],
+//                                    1);
+//            uart_manage.task_num_++;
+//            uart_manage.task_handle_[id].handle[uart_manage.task_handle_[id].task_num_] = &uart_task_handle[uart_manage.task_num_];
+//            uart_manage.task_handle_[id].task_num_++;
+//            break;
+//        case UART_IO_MODE_RECEIVE:
+//            //sprintf(pc_name, "Uart%s%d", kRxname, uart_manage.task_num_);
+//            xTaskCreatePinnedToCore((TaskFunction_t) UartRev,
+//                                    (const char *const) pc_name,
+//                                    5120,
+//                                    uart_config,
+//                                    10,
+//                                    &uart_task_handle[uart_manage.task_num_],
+//                                    1);
+//            uart_manage.task_num_++;
+//            uart_manage.task_handle_[id].handle[uart_manage.task_handle_[id].task_num_] = &uart_task_handle[uart_manage.task_handle_[id].task_num_];
+//            uart_manage.task_handle_[id].task_num_++;
+//            break;
         case UART_IO_MODE_ALL:
             //sprintf(pc_name, "Uart%s%s%d", kAllname, kTxname, uart_manage.task_num_);
             xTaskCreatePinnedToCore((TaskFunction_t) UartSend,
                                     (const char *const) pc_name,
                                     5120,
                                     uart_config,
-                                    14,
+                                    10,
                                     &uart_task_handle[uart_manage.task_num_],
                                     1);
             uart_manage.task_num_++;
@@ -315,7 +316,7 @@ UartErrT CreateUartTask(UartInitT *uart_config) {
                         (const char *const) pc_name,
                         5120,
                         uart_config,
-                        14,
+                        10,
                         &uart_task_handle[uart_manage.task_num_]);
             uart_manage.task_num_++;
             uart_manage.task_handle_[id].handle[uart_manage.task_handle_[id].task_num_] = &uart_task_handle[uart_manage.task_num_];
@@ -350,14 +351,14 @@ UartErrT Delete_All_Uart_Task() {
 void UartSend(UartInitT *uart_config) {
     uart_port_t uart_num = uart_config->uart_num;
     while (1) {
-        events event;
+        UartInfoEvents event;
         // ESP_LOGE(UART_TAG, "&event: %p", &event);
         while (xQueueReceive(*(uart_config->UartTcpQueue.tcp_to_uart_queue_), &event, pdMS_TO_TICKS(100)) != pdTRUE) {
             //ESP_LOGI(UART_TAG, "WAITING ...");
         }
         if (event.buff_len_ != 0) {
             ESP_LOGI(UART_TAG, "SENDING ...");
-            uart_write_bytes(uart_num, (const char *) event.buff_, event.buff_len_);
+            uart_write_bytes(uart_num, (const char *) event.buff_arr_, event.buff_len_);
         }
     }
     ESP_LOGI(UART_TAG, "uart send is deleted");
@@ -368,25 +369,20 @@ void UartRev(UartInitT *uart_config) {
     uart_port_t uart_num = uart_config->uart_num;
 //    char buffer[UART_BUF_SIZE];
     int uart_buf_len = 0;
-    events event;
+    UartInfoEvents event;
     while (1) {
         uart_get_buffered_data_len(uart_num, (size_t *) &uart_buf_len);
         if (uart_buf_len) {
             uart_buf_len = uart_buf_len > UART_BUF_SIZE ? UART_BUF_SIZE : uart_buf_len;
             uart_buf_len = uart_read_bytes(uart_num, event.buff_arr_, uart_buf_len, pdMS_TO_TICKS(5));
             event.buff_arr_[uart_buf_len] = '\0';
-            // ESP_LOGE(UART_TAG, "buffer = %s  \nuart_buf_len = %d\n", buffer, uart_buf_len);
             if (uart_buf_len != 0) {
-                // strncpy(event.buff_, buffer, uart_buf_len);
-                // ESP_LOGE(UART_TAG, "event buffer = %s  \n", event.buff_arr_);
                 ESP_LOGI(UART_TAG, "RECEIVED\n");
-                event.buff_ = event.buff_arr_;
                 event.buff_len_ = uart_buf_len;
                 uart_buf_len = 0;
                 if (xQueueSend(*(uart_config->UartTcpQueue.uart_to_tcp_queue_), &event, pdMS_TO_TICKS(10)) == pdTRUE) {
-                    //ESP_LOGI(UART_TAG, "TCP_SEND TO QUEUE\n");
                 } else {
-                    ESP_LOGE(UART_TAG, "TCP_SEND TO QUEUE FAILD\n");
+                    ESP_LOGE(UART_TAG, "TCP_SEND TO QUEUE FAILED");
                 }
             }
         } else {

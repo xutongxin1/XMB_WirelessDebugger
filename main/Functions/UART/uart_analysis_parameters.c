@@ -81,19 +81,6 @@ int Uart2ParameterAnalysis(void *attach_rx_buffer, UartInitT* uart_config) {
             uart_config->mode_ = item->valueint;
             printf("mode = %d\n", uart_config->mode_);
 
-//            switch (uart_config->mode_) {
-//                case Send:
-//                case Receive:
-//                    return 0;
-//                case Forward:
-//                case All:
-//                    uart_config->mode_ = All;
-//                    break;
-//                default:
-//                    return 0;
-  //          }
-
-
 
             item=cJSON_GetObjectItem(pu2,"band");
             uart_config->uart_config_.baud_rate = item->valueint;

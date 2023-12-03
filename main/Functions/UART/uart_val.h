@@ -48,9 +48,9 @@ typedef struct
 {
     //enum CommandMode mode;
     char buff_arr_[EVENT_BUFF_SIZE];
-    char* buff_;
+//    char* buff_;
     uint16_t buff_len_;
-}events;
+}UartInfoEvents;
 
 typedef enum 
 {

@@ -57,10 +57,10 @@ void UartTask(int ksock) {
     static QueueHandle_t uart1_to_tcp1_queue_ = NULL;
     static QueueHandle_t uart2_to_tcp2_queue_ = NULL;
     static QueueHandle_t tcp2_to_uart2_queue_ = NULL;
-    uart1_to_tcp1_queue_ = xQueueCreate(50, sizeof(events));
-    tcp1_to_uart1_queue_ = xQueueCreate(50, sizeof(events));
-    uart2_to_tcp2_queue_ = xQueueCreate(50, sizeof(events));
-    tcp2_to_uart2_queue_ = xQueueCreate(50, sizeof(events));
+    uart1_to_tcp1_queue_ = xQueueCreate(50, sizeof(TcpInfoEvent));
+    tcp1_to_uart1_queue_ = xQueueCreate(50, sizeof(TcpInfoEvent));
+    uart2_to_tcp2_queue_ = xQueueCreate(50, sizeof(TcpInfoEvent));
+    tcp2_to_uart2_queue_ = xQueueCreate(50, sizeof(TcpInfoEvent));
 
     c1.UartTcpQueue.uart_to_tcp_queue_ = &uart1_to_tcp1_queue_;
     c1.UartTcpQueue.tcp_to_uart_queue_ = &tcp1_to_uart1_queue_;
@@ -78,7 +78,7 @@ void UartTask(int ksock) {
         if (uart1_flag == 0) {//串口1已被占用，重新配置
             CreateUartTask(&c1);
         }
-        ESP_ERROR_CHECK(TcpTaskAllDelete(&tcp_info_task_handle[TCPINFOCH1]));
+        //ESP_ERROR_CHECK(TcpTaskAllDelete(&tcp_info_task_handle[TCPINFOCH1]));
 
         tcp_info_task_handle[TCPINFOCH1].mode_ = TCP_ALL;
         tcp_info_task_handle[TCPINFOCH1].port_ = Port1921;
