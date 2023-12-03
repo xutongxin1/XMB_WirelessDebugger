@@ -15,8 +15,7 @@
 #include "lwip/sockets.h"
 #include <errno.h>
 #include "cJSON.h"
-
-
+#include "WSLED/WSLED.h"
 
 //static int receive_com_flag = 0;                // 是否收到COM心跳包
 const char kHeartRet[5] = "OK!\r\n"; // 心跳包发送
@@ -47,10 +46,57 @@ extern bool c2UartConfigFlag;
 void TCPInstructionTask(void) {
 
 //    char addr_str[128];
+//    TaskStatus_t *pxTaskStatusArray;
+//    unsigned long ulTotalRunTime, ulStatsAsPercentage;
+//    volatile UBaseType_t uxArraySize, x;
+//    uxArraySize = uxTaskGetNumberOfTasks();
+//    printf("the task num is %d\n",uxArraySize);
+    /* Make sure the write buffer does not contain a string. */
+//    char *pcWriteBuffer = 0x00;
+
+    /* Take a snapshot of the number of tasks in case it changes while this
+    function is executing. */
+//    pxTaskStatusArray = pvPortMalloc( uxArraySize * sizeof( TaskStatus_t ) );
+//    if (pxTaskStatusArray != NULL ){
+    printf("%d\n", configUSE_TRACE_FACILITY);
+//        /* Generate raw status information about each task. */
+//        uxArraySize = uxTaskGetSystemState( pxTaskStatusArray,
+//                                            uxArraySize,
+//                                            &ulTotalRunTime);
+//        printf("uxArraySize: %d\n",uxArraySize);
+//        for( x = 0; x < uxArraySize; x++ )
+//        {
+//            /* What percentage of the total run time has the task used?
+//            This will always be rounded down to the nearest integer.
+//            ulTotalRunTimeDiv100 has already been divided by 100. */
+//            ulStatsAsPercentage =
+//                    pxTaskStatusArray[ x ].ulRunTimeCounter / ulTotalRunTime;
+//
+//            if( ulStatsAsPercentage > 0UL )
+//            {
+//                sprintf( pcWriteBuffer, "%stt%lutt%lu%%rn",
+//                         pxTaskStatusArray[ x ].pcTaskName,
+//                         pxTaskStatusArray[ x ].ulRunTimeCounter,
+//                         ulStatsAsPercentage );
+//            }
+//            else
+//            {
+//                /* If the percentage is zero here then the task has
+//                consumed less than 1% of the total run time. */
+//                sprintf( pcWriteBuffer, "%stt%lutt<1%%rn",
+//                         pxTaskStatusArray[ x ].pcTaskName,
+//                         pxTaskStatusArray[ x ].ulRunTimeCounter );
+//            }
+//
+//            pcWriteBuffer += strlen( ( char * ) pcWriteBuffer );
+//        }
+//    }
+
+
     int addr_family = AF_INET;
     int ip_protocol;
 
-    static int on = 1;
+    int on = 1;
 
     struct sockaddr_storage dest_addr;
     struct sockaddr_in *dest_addr_ip4 = (struct sockaddr_in *) &dest_addr;
@@ -84,19 +130,20 @@ void TCPInstructionTask(void) {
         goto CLEAN_UP;
     }
 
-    while (1) {//等待客户端连接
+    while (1) {//
 
         ESP_LOGI(TAG, "Instruction TCP Socket listening");
-
+        WSLEDSet(0, 50, 0, true);//表示设备连接上
         struct sockaddr_storage source_addr; // Large enough for both IPv4 or IPv6
         socklen_t addr_len = sizeof(source_addr);
 
-        instrucion_kSock = accept(listen_sock, (struct sockaddr *) &source_addr, &addr_len);//接收来自客户端的连接要求，返回新套接字的句柄
+        instrucion_kSock = accept(listen_sock, (struct sockaddr *) &source_addr,
+                                  &addr_len);//接收来自客户端的连接要求，返回新套接字的句柄，该函数为阻塞函数
         if (instrucion_kSock < 0) {
             ESP_LOGE(TAG, " Unable to accept connection: errno %d", errno);
-            break;
+            continue;
         }
-        // printf("1");
+        WSLEDSet(0, 50, 0, false);//表示设备连接上
         setsockopt(instrucion_kSock, SOL_SOCKET, SO_KEEPALIVE, &keepAlive, sizeof(int));
         setsockopt(instrucion_kSock, IPPROTO_TCP, TCP_KEEPIDLE, &keepIdle, sizeof(int));
         setsockopt(instrucion_kSock, IPPROTO_TCP, TCP_KEEPINTVL, &keepInterval, sizeof(int));
@@ -118,10 +165,17 @@ void TCPInstructionTask(void) {
             } while (send_bytes < 0);
         }
 
+        //仅测试代码
+        ESP_LOGW(TAG,"测试中,模式自动配置");
+        CommandJsonAnalysis(0, "{\"command\":101,\"attach\":\"2\"} ", instrucion_kSock);
+        vTaskDelay(500);
+        CommandJsonAnalysis(0, "{\"command\": 220,\"attach\": {\"u1\": {\"mode\": 3,\"band\": 115200,\"parity\": 0,\"data\": 8,\"stop\": 1},\"u2\": {\"mode\": 3,\"band\": 9600,\"parity\": 0,\"data\": 8,\"stop\": 1}}}", instrucion_kSock);
+
+
         while (1)//循环接收数据
         {
 
-            char tcp_rx_buffer[1500] = {0};
+            static char tcp_rx_buffer[1500] = {0};
 
             int len = recv(instrucion_kSock, tcp_rx_buffer, sizeof(tcp_rx_buffer), 0);//从socket中读取字符到tcp_rx_buffer
 
@@ -132,9 +186,12 @@ void TCPInstructionTask(void) {
             }
                 // Data received
             else {
-
+                //使用 /* FALLTHRU */ 关键字避免报错
                 switch (kState1) {
-                    case ACCEPTING:kState1 = ATTACHING;
+
+                    case ACCEPTING:
+                        kState1 = ATTACHING;
+                        /* FALLTHRU */
                     case ATTACHING:
                         // printf("RX: %s\n", tcp_rx_buffer);
                         HeartBeat(tcp_rx_buffer); // 发送心跳包，当COM心跳成功发送，则置Flag为1
@@ -169,7 +226,8 @@ void TCPInstructionTask(void) {
 //                            }
 
                         break;
-                    default:ESP_LOGW(TAG, "Instruction TCP socket unkonw kstate!");
+                    default:
+                        ESP_LOGW(TAG, "Instruction TCP socket unkonw kstate!");
                 }
             }
         }
@@ -192,7 +250,9 @@ void TCPInstructionTask(void) {
     close(listen_sock);
     vTaskDelete(NULL);
 }
+
 const static char *heart_package = "COM\r\n";
+
 void HeartBeat(char *rx_buffer) {
     if (rx_buffer != NULL) {
         if (strstr(rx_buffer, heart_package))//接收到p1
@@ -264,8 +324,10 @@ void CommandJsonAnalysis(unsigned int len, void *rx_buffer, int ksock) {
         //再解析各个模式的指令包
         switch (working_mode) {
 
-            case NONE_MODE:break;
-            case DAP:break;
+            case NONE_MODE:
+                break;
+            case DAP:
+                break;
             case UART: {
                 if (str_command == 220)//接收到的信息要求配置为串口模式以后收到220
                 {
@@ -287,39 +349,55 @@ void CommandJsonAnalysis(unsigned int len, void *rx_buffer, int ksock) {
             }
                 break;
 
-            case ADC:break;
-            case DAC:break;
-            case PWM_COLLECT:break;
-            case PWM_SIMULATION:break;
-            case I2C:break;
-            case SPI:break;
-            case CAN:break;
+            case ADC:
+                break;
+            case DAC:
+                break;
+            case PWM_COLLECT:
+                break;
+            case PWM_SIMULATION:
+                break;
+            case I2C:
+                break;
+            case SPI:
+                break;
+            case CAN:
+                break;
         }
 
     }
 }
 
 void ChangeWorkMode(int mode) {
-
+    WSLEDSet(0, 0, 50, true);//表示收到模式配置
     switch (mode) {
 //        case DAP:DAPHandle();
 //            break;
-        case UART:UartHandle();
+        case UART:
+            UartHandle();
             break;
-        case ADC:ADCHandle();
+        case ADC:
+            ADCHandle();
             break;
-        case DAC:DACHandle();
+        case DAC:
+            DACHandle();
             break;
-        case PWM_COLLECT:PwmCollectHandle();
+        case PWM_COLLECT:
+            PwmCollectHandle();
             break;
-        case PWM_SIMULATION:PwmSimulationHandle();
+        case PWM_SIMULATION:
+            PwmSimulationHandle();
             break;
-        case I2C:I2CHandle();
+        case I2C:
+            I2CHandle();
             break;
-        case SPI:SpiHandle();
+        case SPI:
+            SpiHandle();
             break;
-        case CAN:CanHandle();
+        case CAN:
+            CanHandle();
             break;
-        default:break;
+        default:
+            break;
     }
 }
