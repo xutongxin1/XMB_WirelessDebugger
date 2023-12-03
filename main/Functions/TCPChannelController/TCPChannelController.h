@@ -1,3 +1,4 @@
+#include <sys/cdefs.h>
 #ifndef _TCP_H_
 #define _TCP_H_
 
@@ -6,66 +7,86 @@
 #include "freertos/event_groups.h"
 #include "freertos/queue.h"
 //TCP相关
-#define TCP_BUF_SIZE 512
-#define QUEUE_BUF_SIZE 64
-// enum CHIo
-// {
-//     CH1 = 34,
-//     CH2 = 25,
-//     CH3 = 26,
+//#define TCP_BUF_SIZE 512
+//#define QUEUE_BUF_SIZE 64
 
-// };
-
-enum Port
+enum TCPPort
 {
-    CH1 = 1920,
-    CH2,
-    CH3,
-    CH4
-
-
+    InstructionPort = 1920,
+    Port1921,
+    Port1922,
+    Port1923
+};
+enum TCPInfoChannle {
+    TCPINFOCH1 = 0,
+    TCPINFOCH2,
+    TCPINFOCH3,
 };
 
 enum TCPMode {
-    TCP_SEND = 1,
-    TCP_RECEIVE,
-    TCP_ALL,
+    TCP_ALL = 1,
+//    TCP_SEND ,
+//    TCP_RECEIVE,
 };
 
-typedef struct 
-{
-    QueueHandle_t* tx_buff_queue_;
-    QueueHandle_t* rx_buff_queue_;
-    enum TCPMode mode;
-    enum Port port;
-}TcpParam;
 
-typedef struct 
+typedef struct
 {
-    TcpParam* tcp_param_;
-    struct netconn **conn;
-    struct netconn **newconn_;
-    uint8_t son_task_current_;
-}SubTcpParam;
+    enum TCPMode mode_;
+    enum TCPPort port_;
 
-typedef struct 
-{
-    TaskHandle_t* father_task_handle_;
-    uint8_t father_taskcount_;
-    enum Port father_task_port_;
-    TaskHandle_t* son_task_handle_;
-    uint8_t son_taskcount_;
-    char son_taskname_[16];
-    bool father_task_exists_;
+    TaskHandle_t *k_father_task_;//TCP接受连接与接收的句柄
+    TaskHandle_t *k_son_task_;//TCP发送的句柄
+
+    bool father_task_exists_ ;
     bool son_task_exists_;
-    enum TCPMode mode;
-} TcpTaskHandleT;
 
-void TcpSendServer(TcpParam *parameter);
-void TcpRevServer(TcpParam *parameter);
-void TcpServerRevAndSend(TcpParam *parameter);
-uint8_t CreateTcpServer(uint16_t port, struct netconn **conn);
-uint8_t TcpTaskAllDelete(TcpTaskHandleT* tcp_task_handle_delete);
-TcpTaskHandleT* TcpTaskCreate(TcpParam *parameter);
-void TcpServerSubtask(SubTcpParam *parameter);
+    //功能性队列参数
+    UartTcpQueueT uart_tcp_queue_;
+
+    //NetIF句柄
+//    struct netconn *k_server_;
+//    struct netconn *k_client_;
+    int k_server_;
+    int k_client_;
+
+} TcpInfoTaskHandleT;
+
+typedef struct
+{
+    //enum CommandMode mode;
+    char buff_arr_[EVENT_BUFF_SIZE];
+//    char* buff_;
+    uint16_t buff_len_;
+}TcpInfoEvent;
+
+extern TcpInfoTaskHandleT tcp_info_task_handle[4];//1921,1922,1923,1924
+//void TcpSendServer(TcpParam *parameter);
+//void TcpRevServer(TcpParam *parameter);
+/// TCP接受连接与接收的任务
+/// \param parameter 传参
+void TcpServerAcceptWithRec(TcpInfoTaskHandleT *parameter);
+
+/// TCP发送的任务
+/// \param parameter 传参
+_Noreturn void TcpServerSend(TcpInfoTaskHandleT *parameter);
+
+/// 创建TCP NetIF Server句柄并监听
+/// \param port 端口
+/// \param k_server NetIF服务端句柄
+/// \return 返回创建是否成功
+esp_err_t CreateTcpServer(TcpInfoTaskHandleT *parameter);
+
+/// 删除TCP NetIF 所有句柄和任务
+/// \param tcp_task_handle_delete
+/// \return 删除是否成功
+esp_err_t TcpTaskAllDelete(TcpInfoTaskHandleT *tcp_task_handle_delete);
+
+/// TCP任务创建
+/// \param parameter 传参
+/// \param priority 任务优先级
+/// \return 创建是否成功
+esp_err_t TcpTaskCreate(TcpInfoTaskHandleT *parameter, int priority);
+
+esp_err_t TCPBSDAccept(TcpInfoTaskHandleT *parameter);
 #endif

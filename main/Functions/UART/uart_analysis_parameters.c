@@ -10,7 +10,6 @@ bool c2UartConfigFlag = false;
 static const char *TAG = "UARTConfiguration";
 //串口1接收到的字符解析并进行配置
 int Uart1ParameterAnalysis(void *attach_rx_buffer, UartInitT* uart_config) {
-
     cJSON *pu1 = cJSON_GetObjectItem(attach_rx_buffer, "u1"); // 解析c1字段内容
          //是否指令为空
          if (pu1 != NULL)
@@ -31,7 +30,7 @@ int Uart1ParameterAnalysis(void *attach_rx_buffer, UartInitT* uart_config) {
             uart_config->uart_num = UART_NUM_1;
              ESP_LOGI(TAG, "UART1 Config Begin");
              uart_config->mode_ = item->valueint;
-            printf("mode = %d\n", uart_config->mode_);
+            //printf("mode = %d\n", uart_config->mode_);
 
 
 
@@ -81,19 +80,6 @@ int Uart2ParameterAnalysis(void *attach_rx_buffer, UartInitT* uart_config) {
             ESP_LOGI(TAG, "UART2 Config Begin");
             uart_config->mode_ = item->valueint;
             printf("mode = %d\n", uart_config->mode_);
-
-//            switch (uart_config->mode_) {
-//                case Send:
-//                case Receive:
-//                    return 0;
-//                case Forward:
-//                case All:
-//                    uart_config->mode_ = All;
-//                    break;
-//                default:
-//                    return 0;
-  //          }
-
 
 
             item=cJSON_GetObjectItem(pu2,"band");

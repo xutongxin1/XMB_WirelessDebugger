@@ -35,7 +35,7 @@ void app_main(void) {
     wifi_init();
     WSLEDSet(0,50,0,true);//表示wifi初始化完成
     //灯逻辑
-    xTaskCreatePinnedToCore(WSLEDRun, "WSLEDRun", 4096, NULL, 14, NULL, 1);
+//    xTaskCreatePinnedToCore(WSLEDRun, "WSLEDRun", 4096, NULL, 11, NULL, 1);
     //读取NVS
     int command_mode = NVSFlashRead();//对应泛型
     if (command_mode != -1) {//上次重启是为了配置模式
